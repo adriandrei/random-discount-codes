@@ -24,7 +24,7 @@ npm run dev
 ```
 
 - open the link provided by the Vite url to the client application.
-- if the client successfully connected via SignalR to the backend, there should be the `Connected` indicator at the top right corner.
+- if the client is successfully connected via SignalR to the backend, there should be the `Connected` indicator at the top right corner.
 
 ### Troubleshooting
 - By default, the backend starts on port `5050`. If this port is used by another aplication, make note of the new port and update the value in the client's `main.ts` file.
@@ -46,7 +46,7 @@ When it comes to storing the discount codes to the database, there are different
 implementation is an optimistic one which trades the need to validate each code individually and attempts to insert a
 batch of new codes in a single transaction; if this fails, we then check which codes already exists and only regenerate
 new values for those and attempts to save them again. An even more robust solution would extract this "check how many
-exists and regenerate them again" and retry it several times (configurable number) before existing. An example would be to try to generate 100, error out while discovering that 10 are already used, save the 90 and proceed to regenerate 10 and save them followed again by 5 being already used and so on. This approach
+exists and regenerate them again" and retry it several times (configurable number) before exiting. An example would be to try to generate 100, error out while discovering that 10 are already used, save the 90 and proceed to regenerate 10 and save them followed again by 5 being already used and so on. This approach
 minimizes the number of db calls for optimal performance. At the other end however, we could go the route of
 individually checking each and every newly generated code before adding it to the list of commitable codes, but this
 approach would make as many round trips just for uniqueness validation as there are codes to generate which would
@@ -73,5 +73,5 @@ succeed as the other will receive a `DbUpdateConcurrencyException` (scenario exp
 
 
 ## Last words.
-- Further conversations can be held around the considerations discussed around the codes generation logic & avoiding racing condition but in the absence of additional requirements, we can save these details for a live conversation about pros & cons.
+- Further conversations can be held around the considerations discussed around the codes generation logic & avoiding racing condition but in the absence of additional requirements, we can save these details for a live conversation about pros & cons. 
 - Effort was not put into dockerizing this solution, except for the tests. Additionally more tests could be written, the ones which currently exists demostrating basic functional capabilities.
