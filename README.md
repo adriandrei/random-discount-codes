@@ -50,7 +50,7 @@ exists and regenerate them again" and retry it several times (configurable numbe
 minimizes the number of db calls for optimal performance. At the other end however, we could go the route of
 individually checking each and every newly generated code before adding it to the list of commitable codes, but this
 approach would make as many round trips just for uniqueness validation as there are codes to generate which would
-severely impact performance. Furthermore, in a multi instance scenario, the possibility of another instance committing a
+severely impact performance. Furthermore, in a multi instance scenario, the possibility of another instance committing
 newly generated codes before the current instance is also a risk, which means that no solution is perfect and trade-offs
 might need to be made based on other functional & non-functional requirements.
 
