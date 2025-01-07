@@ -104,9 +104,32 @@ public class DiscountCodesHubTests : IAsyncLifetime
         // Assert
         Assert.Equal(1, response.Result);
 
-        var usedCode = await dbContext.DiscountCodes.SingleAsync();
         await dbContext.Entry(code).ReloadAsync();
-        Assert.True(usedCode.IsUsed);
+        Assert.True(code.IsUsed);
+    }
+
+    [Fact]
+    public async Task UseCode_IfCodeIsAlreadyUsed_ShouldReturnZero()
+    {
+        // Arrange
+        var generateRequest = new GenerateRequest { Count = 1, Length = 8 };
+        await _connection!.InvokeAsync<GenerateResponse>("GenerateCodes", generateRequest);
+
+        using var scope = _app!.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var code = await dbContext.DiscountCodes.FirstAsync();
+
+        var useRequest = new UseCodeRequest { Code = code.Code };
+        var useCodeResponse = await _connection!.InvokeAsync<UseCodeResponse>("UseCode", useRequest);
+        Assert.Equal(1, useCodeResponse.Result);
+        await dbContext.Entry(code).ReloadAsync();
+        Assert.True(code.IsUsed);
+
+        // Act
+        useCodeResponse = await _connection!.InvokeAsync<UseCodeResponse>("UseCode", useRequest);
+
+        // Assert
+        Assert.Equal(0, useCodeResponse.Result);
     }
 
     [Fact]

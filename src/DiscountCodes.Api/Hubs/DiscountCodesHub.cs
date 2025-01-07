@@ -13,11 +13,27 @@ public class DiscountCodesHub : Hub
 
     public async Task<GenerateResponse> GenerateCodes(GenerateRequest request)
     {
-        return await _service.GenerateCodes(request);
+        try
+        {
+            return await _service.GenerateCodes(request);
+        }
+        catch (Exception e)
+        {
+            // log details.
+            return new GenerateResponse { Result = false };
+        }
     }
 
     public async Task<UseCodeResponse> UseCode(UseCodeRequest request)
     {
-        return await _service.UseCode(request);
+        try
+        {
+            return await _service.UseCode(request);
+        }
+        catch (Exception e)
+        {
+            // log details.
+            return new UseCodeResponse { Result = 0 };
+        }
     }
 }

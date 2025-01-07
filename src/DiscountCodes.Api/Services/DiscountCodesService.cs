@@ -44,25 +44,18 @@ public class DiscountCodesService
 
             codes.ExceptWith(existingCodes);
 
-            if (codes.Count > 0)
+            while(codes.Count < request.Count)
             {
-                while (codes.Count < request.Count)
+                var newCode = GenerateRandomCode(request.Length);
+                if (!existingCodes.Contains(newCode))
                 {
-                    var newCode = GenerateRandomCode(request.Length);
-                    if (!existingCodes.Contains(newCode))
-                    {
-                        codes.Add(newCode);
-                    }
+                    codes.Add(newCode);
                 }
+            }
 
-                discountCodes = codes.Select(code => new DiscountCode { Code = code, IsUsed = false }).ToList();
-                await _dbContext.DiscountCodes.AddRangeAsync(discountCodes);
-                await _dbContext.SaveChangesAsync();
-            }
-            else
-            {
-                throw;
-            }
+            discountCodes = codes.Select(code => new DiscountCode { Code = code, IsUsed = false }).ToList();
+            await _dbContext.DiscountCodes.AddRangeAsync(discountCodes);
+            await _dbContext.SaveChangesAsync();
         }
 
         return new GenerateResponse { Result = true };

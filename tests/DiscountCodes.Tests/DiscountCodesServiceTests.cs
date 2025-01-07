@@ -51,13 +51,16 @@ public class DiscountCodesServiceTests : IAsyncLifetime
     public async Task UseCodeWithBlocker_IfMultipleInstancesUseTheSameCode_OnlyOneWillSucceed()
     {
         // Arrange
-        var generateRequest = new GenerateRequest { Count = 1, Length = 8 };
         using var codeGenerationScope = _serviceProvider.CreateScope();
         var dbContext = codeGenerationScope.ServiceProvider.GetRequiredService<AppDbContext>();
         var service = new DiscountCodesService(dbContext);
+
+        // Seed discount code
+        var generateRequest = new GenerateRequest { Count = 1, Length = 8 };
         await service.GenerateCodes(generateRequest);
         var generatedCode = await dbContext.DiscountCodes.SingleAsync();
-        
+
+        // Create separate discount 
         using var useCodeScope1 = _serviceProvider.CreateScope();
         var useScopeDbContext1 = useCodeScope1.ServiceProvider.GetRequiredService<AppDbContext>();
         var service1 = new DiscountCodesService(useScopeDbContext1);
@@ -65,7 +68,7 @@ public class DiscountCodesServiceTests : IAsyncLifetime
         using var useCodeScope2 = _serviceProvider.CreateScope();
         var useScopeDbContext2 = useCodeScope2.ServiceProvider.GetRequiredService<AppDbContext>();
         var service2 = new DiscountCodesService(useScopeDbContext2);
-        
+
         var request = new UseCodeRequest { Code = generatedCode.Code };
         var waitTwoSeconds = Task.Delay(2000);
 
@@ -74,9 +77,13 @@ public class DiscountCodesServiceTests : IAsyncLifetime
         var task2 = Task.Run(() => service2.UseCodeWithBlocking(request, waitTwoSeconds));
 
         // Assert
-        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
+        var exception = await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
             async () => await Task.WhenAll([task1, task2]));
 
+        Assert.Contains(
+            "The database operation was expected to affect 1 row(s), but actually affected 0 row(s); " +
+            "data may have been modified or deleted since entities were loaded.",
+            exception.Message);
         await dbContext.Entry(generatedCode).ReloadAsync();
         Assert.True(generatedCode.IsUsed);
     }
